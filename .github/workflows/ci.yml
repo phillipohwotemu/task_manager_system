@@ -1,4 +1,4 @@
-name: Django CI/CD with DevSecOps
+name: Django CI/CD Workflow
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  test-and-security:
+  test-and-build:
     runs-on: ubuntu-latest
 
     services:
@@ -27,17 +27,17 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.10  # Use a valid Python version
+        python-version: 3.10  # Replace 3.1 with 3.10 or another valid version
 
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
 
-    - name: Run Unit Tests
+    - name: Run Tests
       run: |
         python manage.py test
 
-    - name: Run Snyk Vulnerability Scan
+    - name: Snyk Vulnerability Scan
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       run: |
@@ -45,7 +45,7 @@ jobs:
         snyk auth $SNYK_TOKEN
         snyk test
 
-    - name: Dependency Security Scan (Safety)
+    - name: Dependency Security Scan
       run: |
         pip install safety
         safety check -r requirements.txt
@@ -67,5 +67,5 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1
       run: |
-        aws ecs update-service --cluster your-cluster-name \
-          --service your-service-name --force-new-deployment
+        aws ecs update-service --cluster my-cluster \
+          --service my-service --force-new-deployment
