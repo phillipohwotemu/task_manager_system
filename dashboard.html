@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ user.username }}</h1>
+    <h2>Projects</h2>
+    <ul>
+        {% for project in projects %}
+        <li>{{ project.name }} - {{ project.status }}</li>
+        {% endfor %}
+    </ul>
+    <h2>My Tasks</h2>
+    <ul>
+        {% for task in tasks %}
+        <li>{{ task.title }} - {{ task.status }} ({{ task.priority }})</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
