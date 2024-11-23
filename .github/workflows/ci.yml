@@ -1,15 +1,13 @@
-name: Django CI
+name: Django CI/CD with DevSecOps
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
+      - develop
       - main
 
 jobs:
-  test:
+  test-and-security:
     runs-on: ubuntu-latest
 
     services:
@@ -29,20 +27,50 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.13.0  # Stable version of Python supported by GitHub Actions
+        python-version: 3.10
 
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
 
-    - name: Run migrations
-      env:
-        DATABASE_URL: postgres://admin:admin@localhost:5432/task_manager_db
-      run: |
-        python manage.py migrate
-
-    - name: Run tests
-      env:
-        DATABASE_URL: postgres://admin:admin@localhost:5432/task_manager_db
+    - name: Run Unit Tests
       run: |
         python manage.py test
+
+    - name: Run Snyk Vulnerability Scan
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      run: |
+        pip install snyk
+        snyk auth $SNYK_TOKEN
+        snyk test
+
+    - name: Dependency Security Scan (Safety)
+      run: |
+        pip install safety
+        safety check -r requirements.txt
+
+    - name: Static Code Analysis (SonarQube)
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        sonar-scanner \
+          -Dsonar.projectKey=my-project \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=$SONAR_TOKEN
+
+    - name: Dynamic Security Test (OWASP ZAP)
+      uses: zapbot/action-zap@v1
+      with:
+        cmd: zap-baseline.py -t http://localhost:8000
+
+    - name: Deploy to Production
+      if: github.ref == 'refs/heads/main'
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        aws ecs update-service --cluster your-cluster-name \
+          --service your-service-name --force-new-deployment
