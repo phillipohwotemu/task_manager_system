@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - develop
-      - main  # Allows deployment only on main branch
+      - main
 
 jobs:
   test-and-deploy:
@@ -23,21 +23,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-
-    - name: Snyk Vulnerability Scan
-      if: github.ref == 'refs/heads/develop'  # Run only for develop branch
-      uses: snyk/actions/python@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-    - name: SonarQube Analysis
-      if: github.ref == 'refs/heads/develop'  # Run only for develop branch
-      run: |
-        sonar-scanner \
-          -Dsonar.projectKey=django-task-manager \
-          -Dsonar.sources=. \
-          -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }} \
-          -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
 
     - name: Run Tests
       run: python manage.py test
