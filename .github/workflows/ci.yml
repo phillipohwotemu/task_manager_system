@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.13.0  # Stable version of Python supported by GitHub Actions
+        python-version: 3.14.0-alpha.2  # Correct version for Ubuntu 22.04
 
     - name: Install dependencies
       run: |
